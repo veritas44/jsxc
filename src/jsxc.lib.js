@@ -460,6 +460,10 @@ jsxc = {
       if (xmppOptions.url && (xmppOptions.jid || (xmppOptions.username && xmppOptions.domain)) && xmppOptions.password) {
          xmppOptions.jid = xmppOptions.jid || (xmppOptions.username + '@' + xmppOptions.domain);
 
+         $(document).on('connfail.jsxc', reloginFailed);
+         $(document).on('authfail.jsxc', reloginFailed);
+         $(document).on('connected.jsxc', removeReloginHandler);
+
          jsxc.start(xmppOptions.jid, xmppOptions.password);
 
          return true;
@@ -481,22 +485,6 @@ jsxc = {
                } else {
                   reloginFailed();
                }
-
-               function reloginFailed() {
-                  jsxc.debug('Could not relogin.');
-
-                  removeReloginHandler();
-
-                  jsxc.storage.removeUserItem('loadSettingsAllKnowing');
-
-                  jsxc.prepareNewConnection();
-               }
-
-               function removeReloginHandler() {
-                  $(document).off('connfail.jsxc', reloginFailed);
-                  $(document).off('authfail.jsxc', reloginFailed);
-                  $(document).off('connected.jsxc', removeReloginHandler);
-               }
             }, settings);
          });
 
@@ -506,6 +494,22 @@ jsxc = {
       jsxc.debug('I am not able to relogin');
 
       return false;
+
+      function reloginFailed() {
+         jsxc.debug('Could not relogin.');
+
+         removeReloginHandler();
+
+         jsxc.storage.removeUserItem('loadSettingsAllKnowing');
+
+         jsxc.prepareNewConnection();
+      }
+
+      function removeReloginHandler() {
+         $(document).off('connfail.jsxc', reloginFailed);
+         $(document).off('authfail.jsxc', reloginFailed);
+         $(document).off('connected.jsxc', removeReloginHandler);
+      }
    },
 
    registerLogout: function() {
